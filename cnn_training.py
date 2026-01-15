@@ -1,5 +1,3 @@
-
-
 input_layer = Input(shape=(224,224,3))
 base = EfficientNetV2B1(include_top=False, weights='imagenet', input_tensor=input_layer)
 
@@ -47,17 +45,15 @@ history = full_model.fit(
 )
 
 
-plt.figure(figsize=(12,5))
-plt.subplot(1,2,1)
-plt.plot(history.history['accuracy'], label='Train Acc')
-plt.plot(history.history['val_accuracy'], label='Val Acc')
-plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
-plt.legend(); plt.title('Line Graph of Accuracy')
-plt.subplot(1,2,2)
-plt.plot(history.history['loss'], label='Train Loss')
-plt.plot(history.history['val_loss'], label='Val Loss')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.legend(); plt.title('Line graph of Loss')
-plt.show()
+# Feature Extraction
+feature_extractor = Model(inputs=full_model.input, outputs=full_model.get_layer("global_average_pooling2d").output)
+X_train = feature_extractor.predict(train_gen, verbose=1)
+y_train = train_gen.classes
+X_val = feature_extractor.predict(val_gen, verbose=1)
+y_val = val_gen.classes
+
+# To flatten 
+if X_train.ndim > 2:
+     X_train = X_train.reshape((X_train.shape[0], -1))
+     X_val = X_val.reshape((X_val.shape[0], -1))
+
